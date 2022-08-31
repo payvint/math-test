@@ -37,32 +37,49 @@ fn score_to_mark(score: u32) -> String {
     }
 }
 
+fn print_line(label: String, length: usize, elems: [String; 5], size: [usize; 5]) {
+    let mut output_line: String = String::from("|");
+    output_line += &(label + &"|");
+    for index in 0..length {
+        output_line += &(adapt(&elems[index].to_string(), size[index]) + &"|");
+    }
+    println!("{output_line}");
+}
+
 fn print_and_return_results(correct: [bool; 5], times: [f32; 5], step: usize) -> (u32, f32) {
-    println!("Results:");
-    println!("-----------------------------------------");
-    println!("|   1   |   2   |   3   |   4   |   5   |");
-    println!("-----------------------------------------");
-    let mut output_correctness: String = String::from("|");
+    let mut max_length_cell: [usize; 5] = [3; 5];
+    let mut correct_string: [String; 5] = [String::from(""), String::from(""), String::from(""), String::from(""), String::from("")];
+    let times_values: [f32; 5] = times;
+    let mut times_string: [String; 5] = [String::from(""), String::from(""), String::from(""), String::from(""), String::from("")];
     let mut score = 0;
     let mut total_time: f32 = 0.0;
-    for i in 0..5 {
-        if correct[i] {
+    let num_array: [String; 5] = [String::from("1"), String::from("2"), String::from("3"), String::from("4"), String::from("5")];
+    let mut whole_amount_of_cells: usize = 9 + 7;
+    for index in 0..step {
+        total_time += times[index];
+        times_string[index] = String::from(times_values[index].to_string());
+        max_length_cell[index] = times[index].to_string().len() + 4;
+        whole_amount_of_cells += max_length_cell[index];
+        if correct[index] {
             score += 1;
-            total_time += times[i];
-            output_correctness += "   +   |";
-        } else if step <= i {
-            output_correctness += "       |";
+            correct_string[index] = String::from("+");
         } else {
-            total_time += times[i];
-            output_correctness += "   -   |";
+            correct_string[index] = String::from("-");
         }
     }
+    whole_amount_of_cells += (5 - step) * 3;
+    println!("Results on level {}:", 2);
+    println!("{}", String::from("-").repeat(whole_amount_of_cells));
+    print_line(String::from("  Task   "), 5, num_array, max_length_cell);
+    println!("{}", String::from("-").repeat(whole_amount_of_cells));
+    print_line(String::from(" Correct "), 5, correct_string, max_length_cell);
+    println!("{}", String::from("-").repeat(whole_amount_of_cells));
+    print_line(String::from("  Time   "), 5, times_string, max_length_cell);
+    println!("{}", String::from("-").repeat(whole_amount_of_cells));
     let mut average_time: f32 = 0.0;
     if step > 0 {
         average_time = ((total_time / step as f32) * 100.0).round() / 100.0;
     }
-    println!("{output_correctness}");
-    println!("-----------------------------------------");
     println!("\nTotal score: {score}");
     println!("Average time: {}", average_time );
     println!("Mark: {}\n", score_to_mark(score));
@@ -79,6 +96,44 @@ fn update_game_highscore(max_score: &mut [u32; 3], min_time: &mut [f32; 3], leve
         return true;
     }
     return false;
+}
+
+fn adapt(elem: &str, max_length: usize) -> String {
+    let mut output_string: String = String::new();
+    let first_part: usize = (max_length - elem.len()) / 2 + (max_length - elem.len()) % 2;
+    let second_part: usize = (max_length - elem.len()) / 2;
+    output_string += &" ".repeat(first_part);
+    output_string += elem;
+    output_string += &" ".repeat(second_part);
+    output_string
+}
+
+fn print_highscore(max_score: [u32; 3], min_time: [f32; 3]) {
+    let mut print: bool = false;
+    let mut max_length_cell: [usize; 5] = [0; 5];
+    let mut scores_string: [String; 5] = [String::from(""), String::from(""), String::from(""), String::from(""), String::from("")];
+    let mut times_string: [String; 5] = [String::from(""), String::from(""), String::from(""), String::from(""), String::from("")];
+    let num_array: [String; 5] = [String::from("1"), String::from("2"), String::from("3"), String::from(""), String::from("")];
+    for index in 0..3 {
+        if min_time[index] > 0.0 {
+            print = true;
+        }
+        scores_string[index] = max_score[index].to_string();
+        times_string[index] = min_time[index].to_string();
+        max_length_cell[index] = min_time[index].to_string().len() + 4;
+    }
+
+    if print {
+        println!("\nHigh score on each level during this game:");
+        let whole_amount_of_cells: usize = 7 + 5 + max_length_cell[0] + max_length_cell[1] + max_length_cell[2];
+        println!("{}", String::from("-").repeat(whole_amount_of_cells));
+        print_line(String::from(" Level "), 3, num_array, max_length_cell);
+        println!("{}", String::from("-").repeat(whole_amount_of_cells));
+        print_line(String::from(" Score "), 3, scores_string, max_length_cell);
+        println!("{}", String::from("-").repeat(whole_amount_of_cells));
+        print_line(String::from(" Time  "), 3, times_string, max_length_cell);
+        println!("{}", String::from("-").repeat(whole_amount_of_cells));
+    }
 }
 
 fn main() {
@@ -105,6 +160,7 @@ fn main() {
                 Ok(num) => num,
                 Err(_) => {
                     if level_input.trim() == "exit" {
+                        print_highscore(max_score, min_time);
                         println!("\nSuccessfully exited from the test!");
                         return;
                     } else if level_input.trim() == "help" {
@@ -145,6 +201,7 @@ fn main() {
             .expect("Internal reading error");
 
         if ready_to_test.trim() == "exit" {
+            print_highscore(max_score, min_time);
             println!("\nSuccessfully exited from the test!");
             return;
         }
@@ -176,7 +233,7 @@ fn main() {
                     Ok(num) => num,
                     Err(_) => {
                         if answer_str.trim() == "exit" {
-                            println!("\nSuccessfully exited from the test!");
+                            println!("\nSuccessfully exited from the round!");
                             exited = true;
                             break;
                         } else if answer_str.trim() == "" {
@@ -231,6 +288,7 @@ fn main() {
             if repeat.trim() == "repeat" {
                 break;
             } else if repeat.trim() == "exit" {
+                print_highscore(max_score, min_time);
                 println!("\nSuccessfully exited from the test!");
                 return;
             } else {
