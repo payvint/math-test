@@ -46,7 +46,7 @@ fn print_line(label: String, length: usize, elems: [String; 5], size: [usize; 5]
     println!("{output_line}");
 }
 
-fn print_and_return_results(correct: [bool; 5], times: [f32; 5], step: usize) -> (u32, f32) {
+fn print_and_return_results(correct: [bool; 5], times: [f32; 5], step: usize, level: u32) -> (u32, f32) {
     let mut max_length_cell: [usize; 5] = [3; 5];
     let mut correct_string: [String; 5] = [String::from(""), String::from(""), String::from(""), String::from(""), String::from("")];
     let times_values: [f32; 5] = times;
@@ -68,7 +68,7 @@ fn print_and_return_results(correct: [bool; 5], times: [f32; 5], step: usize) ->
         }
     }
     whole_amount_of_cells += (5 - step) * 3;
-    println!("Results on level {}:", 2);
+    println!("Results on level {}:", level);
     println!("{}", String::from("-").repeat(whole_amount_of_cells));
     print_line(String::from("  Task   "), 5, num_array, max_length_cell);
     println!("{}", String::from("-").repeat(whole_amount_of_cells));
@@ -143,13 +143,11 @@ fn main() {
     let mut min_time: [f32; 3] = [0.0; 3];
 
     loop {
-
         initial_log();
     
         let mut level: u32;
         
         loop {
-
             let mut level_input = String::new();
 
             io::stdin()
@@ -179,14 +177,15 @@ fn main() {
             } else {
                 warning_log();
             }
-
         }
 
         println!("\nYou put a level {level}");
-        match level.cmp(&2) {
-            std::cmp::Ordering::Less => println!("It is an Easy level"),
-            std::cmp::Ordering::Equal => println!("It is a Medium level"),
-            std::cmp::Ordering::Greater => println!("It is a Hard level"),
+        if level == 1 {
+            println!("It is an Easy level");
+        } else if level == 2 {
+            println!("It is a Medium level");
+        } else {
+            println!("It is a Hard level");
         }
         println!();
 
@@ -254,17 +253,15 @@ fn main() {
                 } else {
                     println!("\nIncorrect answer!");
                     println!("Correct answer is {}\n", a + b);
-        
                 }
                 step += 1;
                 break;
             }
-
         }
 
         let score: u32;
         let time: f32;
-        (score, time) = print_and_return_results(correct, times, step);
+        (score, time) = print_and_return_results(correct, times, step, level);
 
         let is_updated: bool = update_game_highscore(&mut max_score, &mut min_time, level as usize, score, time);
 
@@ -296,5 +293,4 @@ fn main() {
             }
         }
     }
-
 }
